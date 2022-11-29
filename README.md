@@ -247,46 +247,46 @@
             }
           }
         ```
-    
-    - 아래는 참조를 제거해 RefenceCount(Rc) 방식이 아닌 소유권 힙 할당(Box)를 사용해 깔끔하게 작성되었다.
+     
+     - 아래는 참조를 제거해 RefenceCount(Rc) 방식이 아닌 소유권 힙 할당(Box)를 사용해 깔끔하게 작성되었다.
         ``` Rust
-        struct TelephoneNumber {
+         struct TelephoneNumber {
           area_code: u32,
           number: u32,
-        }
-        impl TelephoneNumber {
-         fn new(area_code: u32, number: u32) -> Box<Self> {
+         }
+         impl TelephoneNumber {
+          fn new(area_code: u32, number: u32) -> Box<Self> {
            Box::new(Self {
             area_code: area_code,
             number: number,
           })
+          }
          }
-        }
-        struct Person {
+         struct Person {
            telephone_number: Box<TelephoneNumber>,
-         }
-
-        impl Person {
-         fn new(area_code: u32, number: u32) -> Self {
-           Self {
-            telephone_number: TelephoneNumber::new(area_code, number),
+          }
+         
+          impl Person {
+           fn new(area_code: u32, number: u32) -> Self {
+            Self {
+             telephone_number: TelephoneNumber::new(area_code, number),
+            }
+           }
+           fn set_office_area_code(&mut self, area_code: u32) {
+             let ptr = TelephoneNumber::new(area_code, self.telephone_number.number);
+             self.telephone_number = ptr;
+           }
+           fn get_office_area_code(&self) -> u32 {
+             self.telephone_number.area_code
+           }
+           fn set_office_number(&mut self, number: u32) {
+           let ptr = TelephoneNumber::new(self.telephone_number.area_code, number);
+           self.telephone_number = ptr;
+            }
+           fn get_office_number(&self) -> u32 {
+            self.telephone_number.number
            }
           }
-         fn set_office_area_code(&mut self, area_code: u32) {
-           let ptr = TelephoneNumber::new(area_code, self.telephone_number.number);
-           self.telephone_number = ptr;
-         }
-         fn get_office_area_code(&self) -> u32 {
-           self.telephone_number.area_code
-         }
-         fn set_office_number(&mut self, number: u32) {
-          let ptr = TelephoneNumber::new(self.telephone_number.area_code, number);
-          self.telephone_number = ptr;
-         }
-         fn get_office_number(&self) -> u32 {
-            self.telephone_number.number
-         }
-        }
         ```
 
 ### 9.5 값(혹은 복사된 개체)를 참조로 바꾸기!
