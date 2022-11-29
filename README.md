@@ -106,7 +106,7 @@
             }
           }
           
-          fn get_name(self) -> String
+          fn get_name(&self) -> String
           {
             self.name
           }
@@ -132,7 +132,7 @@
             }
           }
           
-          fn get_name(self) -> String
+          fn get_name(&self) -> String
           {
             self.title
           }
@@ -158,14 +158,15 @@
             }
           }
           
-          fn get_title(self) -> String // 매개변수, 함수(메서드) 이름 수정!
+          fn get_title(&self) -> String // 매개변수, 함수(메서드) 이름 수정!
           {
             self.title
           }
         }
         ```
-### 9.3 파생 변수를 질의 함수로!
 
+### 9.3 파생 변수를 질의 함수로!
+   
    * 예시
    
       - 함수의 기능에 주목하자!   
@@ -177,12 +178,12 @@
         }
 
         impl sale_info {
-            fn set_discount(mut self, number: u32) {
+            fn set_discount(&mut self, number: u32) {
               let old = self.discount;
               self.discount = number;
               self.discounted_total += old - number;
             }
-            fn get_discounted_total(self) -> u32 {
+            fn get_discounted_total(&self) -> u32 {
                 self.discounted_total
             }     
         }
@@ -197,21 +198,21 @@
         }
 
         impl sale_info {
-            fn set_discount(mut self, number: u32) {
+            fn set_discount(&mut self, number: u32) {
               self.discount = number;
             }
-            fn get_discounted_total(self) -> u32 {
+            fn get_discounted_total(&self) -> u32 {
                 self.base_total - self.discount
             }     
         }
         ``` 
         
-        
-### 9.4 참조를 값으로 바꾸기!
+### 9.4 참조를 값(혹은 복사된 개체)으로 바꾸기!
 
-    * 예시
+   * 예시
     
-      - 생성 시점에서 제대로 지정되지 않은 전화번호 개체를 설정해보자
+     - 생성 시점에서 제대로 지정되지 않은 전화번호 개체를 설정해보자
+     
         ``` Rust
           struct TelephoneNumber {
             area_code: u32,
@@ -225,26 +226,103 @@
            fn new() -> Self {
               Self {
                 telephone_number: Rc::new(TelephoneNumber {
-                area_code: 0,
-                number: 0
+                area_code: 0, 
+                number: 0 //이상한 초기값도 넣어줘야 한다.
                 }),
                   }
             }
-            fn set_office_area_code(mut self, area_code: u32) {
-              let ptr = Rc::get_mut(&mut self.telephone_number).unwrap();
+            fn set_office_area_code(&mut self, area_code: u32) {
+              let ptr = Rc::get_mut(&mut self.telephone_number).unwrap(); //불필요한 참조 + 1
               ptr.area_code = area_code;
             }
-            fn get_office_area_code(self) -> u32 {
+            fn get_office_area_code(&self) -> u32 {
               self.telephone_number.area_code
             }
-            fn set_office_number(mut self, number: u32) {
-              let ptr = Rc::get_mut(&mut self.telephone_number).unwrap();
+            fn set_office_number(&mut self, number: u32) {
+              let ptr = Rc::get_mut(&mut self.telephone_number).unwrap(); //불필요한 참조 + 1
               ptr.number = number;
             }
-            fn get_office_number(self) -> u32 {
+            fn get_office_number(&self) -> u32 {
               self.telephone_number.number
             }
           }
         ```
+    
+    - 아래는 참조를 제거해 RefenceCount(Rc) 방식이 아닌 소유권 힙 할당(Box)를 사용해 깔끔하게 작성되었다.
+        ``` Rust
+        struct TelephoneNumber {
+          area_code: u32,
+          number: u32,
+        }
+        impl TelephoneNumber {
+         fn new(area_code: u32, number: u32) -> Box<Self> {
+           Box::new(Self {
+            area_code: area_code,
+            number: number,
+          })
+         }
+        }
+        struct Person {
+           telephone_number: Box<TelephoneNumber>,
+         }
+
+        impl Person {
+         fn new(area_code: u32, number: u32) -> Self {
+           Self {
+            telephone_number: TelephoneNumber::new(area_code, number),
+           }
+          }
+         fn set_office_area_code(&mut self, area_code: u32) {
+           let ptr = TelephoneNumber::new(area_code, self.telephone_number.number);
+           self.telephone_number = ptr;
+         }
+         fn get_office_area_code(&self) -> u32 {
+           self.telephone_number.area_code
+         }
+         fn set_office_number(&mut self, number: u32) {
+          let ptr = TelephoneNumber::new(self.telephone_number.area_code, number);
+          self.telephone_number = ptr;
+         }
+         fn get_office_number(&self) -> u32 {
+            self.telephone_number.number
+         }
+        }
+        ```
+
+### 9.5 값(혹은 복사된 개체)를 참조로 바꾸기!
+
+     - 생성 시점에서 제대로 지정되지 않은 전화번호 개체를 설정해보자
+       ``` Rust
+          struct TelephoneNumber {
+            area_code: u32,
+            number: u32,
+          }
+          struct Person {
+             telephone_number: Rc<TelephoneNumber>,
+          }
         
-        
+          impl Person {
+           fn new() -> Self {
+              Self {
+                telephone_number: Rc::new(TelephoneNumber {
+                area_code: 0, 
+                number: 0 //이상한 초기값도 넣어줘야 한다.
+                }),
+                  }
+            }
+            fn set_office_area_code(&mut self, area_code: u32) {
+              let ptr = Rc::get_mut(&mut self.telephone_number).unwrap(); //불필요한 참조 + 1
+              ptr.area_code = area_code;
+            }
+            fn get_office_area_code(&self) -> u32 {
+              self.telephone_number.area_code
+            }
+            fn set_office_number(&mut self, number: u32) {
+              let ptr = Rc::get_mut(&mut self.telephone_number).unwrap(); //불필요한 참조 + 1
+              ptr.number = number;
+            }
+            fn get_office_number(&self) -> u32 {
+              self.telephone_number.number
+            }
+          }
+       ```
