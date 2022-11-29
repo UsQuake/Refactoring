@@ -19,7 +19,7 @@
 
   * 기본 예제
   
-    - 다음 코드를 쪼개보자!
+    - 다음 변수를 쪼개봅시다!
     
       ``` Rust
       fn print_info(height : u32, width: u32)
@@ -34,7 +34,7 @@
       }
       ```
       
-    - Immutable(변경 불가능한, const 변수 같은 거) 변수로 여러개로 만들어 쪼갠다.
+    - Immutable(변경 불가능한, const 변수 같은 거) 변수로 나눕시다!
       ``` Rust
       fn print_info(height : u32, width: u32)
       {
@@ -46,13 +46,13 @@
         
           print!(area);
         
-          //temp라는 임시 변수를 나누었다
+          //temp라는 임시 변수를 나누었습니다! 의미가 명확해진 거 같습니다!
       }
       ```
       
   * 예시: 입력 매개변수의 값을 수정할 때
   
-    - 다음 코드를 고쳐보자!
+    - 다음 코드를 고쳐봅시다!
       ``` Rust
       fn discount(original_input_val: u32, quantity: u32) -> u32 {
       
@@ -72,7 +72,7 @@
            return input_value;
       }
       ```
-    - 이로써 하는 일이 명확해졌다.
+    - 무슨 동작을 하는지 한눈에 보이기 시작했습니다!
       ``` Rust
       fn discount(input_value: u32, quantity: u32) -> u32 {
       
@@ -151,7 +151,7 @@
           }
         }
         ```
-      - 위 과정에 대한 테스트를 충분히 하고, 외부에서 호출하는 메서드를 수정하자! 무조건!
+      - 위 과정에 대한 테스트를 충분히 하고, 외부에서 호출하는 메서드를 수정하세요! 무조건 테스트! 테스트!
       
         ``` Rust
         struct organization
@@ -348,15 +348,15 @@
         use std::collections::HashMap;
         use std::rc::*;
         struct Customer {
-        id: String,
-         }
+          id: String,
+        }
         impl Clone for Customer {
-        fn clone(&self) -> Self {
-          Self {
+          fn clone(&self) -> Self {
+           Self {
             id: self.id.clone(),
+           }
           }
-         }
-         }
+        }
         impl Customer {
          fn new(id: String) -> Self {
           Self { id: id }
@@ -376,7 +376,8 @@
             .unwrap()
             .insert(id.clone(), Rc::new(Customer::new(id.clone())));
            }
-           return Rc::clone(REPOSITORY.as_mut().unwrap().get(&id.clone()).unwrap()); //참조를 반환하기 위해 참조 기반 스마트 포인터인 RC사용
+           return Rc::clone(REPOSITORY.as_mut().unwrap().get(&id.clone()).unwrap()); 
+           //참조를 반환하기 위해 참조 기반 스마트 포인터인 RC를 사용했습니다.
         }
         struct Order {
           number: u32,
@@ -385,7 +386,8 @@
         impl Order {
           fn new(number: u32, id: String) -> Self {
             Self {
-                 customer: unsafe {register_customer(id)},       //하나의
+                 customer: unsafe {register_customer(id)},  
+                 //하나의 큰 저장소의 맵 자료구조에다가 저장해놓고, 그 안에서의 위치(참조)받아서 저장
                  number: number,
                }
             }
