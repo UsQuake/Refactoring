@@ -293,36 +293,52 @@
 
      - 생성 시점에서 제대로 지정되지 않은 전화번호 개체를 설정해보자
        ``` Rust
-          struct TelephoneNumber {
-            area_code: u32,
-            number: u32,
+        use std::collections::HashMap;
+        use std::rc::*;
+        struct Customer {
+        id: String,
+         }
+        impl Clone for Customer {
+        fn clone(&self) -> Self {
+          Self {
+            id: self.id.clone(),
           }
-          struct Person {
-             telephone_number: Rc<TelephoneNumber>,
-          }
-        
-          impl Person {
-           fn new() -> Self {
-              Self {
-                telephone_number: Rc::new(TelephoneNumber {
-                area_code: 0, 
-                number: 0 //이상한 초기값도 넣어줘야 한다.
-                }),
-                  }
+         }
+         }
+        impl Customer {
+         fn new(id: String) -> Self {
+          Self { id: id }
             }
-            fn set_office_area_code(&mut self, area_code: u32) {
-              let ptr = Rc::get_mut(&mut self.telephone_number).unwrap(); //불필요한 참조 + 1
-              ptr.area_code = area_code;
+        }
+        static mut REPOSITORY: Option<HashMap<String, Rc<Customer>>> = None;
+        unsafe fn init_repo() {
+             REPOSITORY = Some(HashMap::new())
+        }
+        unsafe fn register_customer(id: String) -> Rc<Customer> {
+           if (REPOSITORY.is_none()) {
+              init_repo();
+           };
+           if REPOSITORY.as_mut().unwrap().get(&id.clone()).is_none() {
+             REPOSITORY
+            .as_mut()
+            .unwrap()
+            .insert(id.clone(), Rc::new(Customer::new(id.clone())));
+           }
+
+           return Rc::clone(REPOSITORY.as_mut().unwrap().get(&id.clone()).unwrap());
+        }
+
+        struct Order {
+          number: u32,
+          customer: Rc<Customer>,
+        }
+
+        impl Order {
+          fn new(number: u32, id: String) -> Self {
+            Self {
+                 customer: unsafe {register_customer(id)},
+                 number: number,
+               }
             }
-            fn get_office_area_code(&self) -> u32 {
-              self.telephone_number.area_code
-            }
-            fn set_office_number(&mut self, number: u32) {
-              let ptr = Rc::get_mut(&mut self.telephone_number).unwrap(); //불필요한 참조 + 1
-              ptr.number = number;
-            }
-            fn get_office_number(&self) -> u32 {
-              self.telephone_number.number
-            }
-          }
+        }
        ```
